@@ -10,9 +10,9 @@
 typedef unsigned char byte;
 
 void fail_with_message(char *);
-unsigned int loadFile(char *, byte *);
-bool readDIBHeader(char **);
-bool readHeader(char **);
+unsigned int loadFile(char *, byte **);
+bool readDIBHeader(byte **);
+bool readHeader(byte **);
 
 int
 main(int argc, char *argv[])
@@ -23,12 +23,14 @@ main(int argc, char *argv[])
 
   byte *buffer = 0;
   unsigned int len;
-  len = loadFile(argv[1], buffer);
+  len = loadFile(argv[1], &buffer);
 
   printf("The length of the file is %u bytes\n", len);
 
-  /* if (!read_header(&)) fail_with_message("Invalid header"); */
+  if (!readHeader(&buffer)) fail_with_message("Invalid header");
   /* if (!read_*buffer(&fp)) fail_with_message("Invalid dib header"); */
+
+  free(buffer);
 
   return 0;
 }
@@ -37,7 +39,7 @@ main(int argc, char *argv[])
  *
  */
 unsigned int
-loadFile(char *fileName, byte *buffer)
+loadFile(char *fileName, byte **buffer)
 {
   FILE *fp = fopen(fileName, "r+");
 
@@ -45,6 +47,8 @@ loadFile(char *fileName, byte *buffer)
   int len = ftell(fp);
   rewind(fp);
 
+  *buffer = malloc(sizeof(byte)*len);
+  fread(*buffer, sizeof(byte), len, fp);
   fclose(fp);
 
   return len;
@@ -66,7 +70,7 @@ fail_with_message(char *msg)
  * header begins at ofset 0x1E and immediately follows the main header.
  */
 bool
-readDIBHeader(char **buffer)
+readDIBHeader(byte **buffer)
 {
   /* unsigned char **header_size = calloc(4, sizeof(unsigned char)); */
 
@@ -134,7 +138,7 @@ readDIBHeader(char **buffer)
  * Reads a bitmap file header (first 14 bytes)
  */
 bool
-readHeader(char **buffer)
+readHeader(byte **buffer)
 {
   if (*buffer[0x00] != 0x42) fail_with_message(NOT_A_VALID_BMP_FILE);
   if (*buffer[0x01] != 0x4D) fail_with_message(NOT_A_VALID_BMP_FILE);
