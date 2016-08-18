@@ -14,6 +14,10 @@
 
 #include <stdlib.h>
 
+#define BITMAPCOREHEADER_SIZE 12
+#define BITMAPINFOHEADER_SIZE 40
+#define BITMAPV5HEADER_SIZE 124
+
 /*
  * Platforms: Windows 2.0+ / OS/2 1.x
  * Notes: These bitmaps are uncompressed and do not support

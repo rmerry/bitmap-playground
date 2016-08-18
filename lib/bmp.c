@@ -2,24 +2,15 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "bitmap_structs.h"
+#include "bitmap.h"
+#include "bytes.c"
 
 #define NOT_A_VALID_BMP_FILE "Not a valid bitmap (.bmp) file"
-#define BITMAPV5HEADER 124
-#define BITMAPINFOHEADER 40
-#define BITMAPCOREHEADER 12
-#define LITTLE_ENDIAN 1
-#define BIG_ENDIAN 2
-
-typedef unsigned char byte;
 
 void fail_with_message(char *);
 unsigned int loadFile(char *, byte **);
 bool readDIBHeader(byte *);
 bool readHeader(byte *);
-
-uint32_t readUint32(byte *, uint32_t, int);
-uint16_t readUint16(byte *, uint32_t, int);
 
 int
 main(int argc, char *argv[])
@@ -80,7 +71,7 @@ bool
 readDIBHeader(byte *buffer)
 {
   // Read the DIB header size into memory
-  uint32_t size = readUint32(buffer, 0x0E, LITTLE_ENDIAN);
+  uint32_t size = read_uint32_le(&buffer[0x0E]);
 
   printf("the dib header size is %d bytes\n", size);
 
@@ -91,23 +82,23 @@ readDIBHeader(byte *buffer)
   int32_t width;
 
   switch (size) {
-    case BITMAPCOREHEADER:
-      width = (uint32_t)readUint16(buffer, 0x12, LITTLE_ENDIAN);
-      height = (uint32_t)readUint16(buffer, 0x14, LITTLE_ENDIAN);
-      colour_planes = readUint16(buffer, 0x16, LITTLE_ENDIAN);
-      bits_per_pixel = readUint16(buffer, 0x18, LITTLE_ENDIAN);
+    case BITMAPCOREHEADER_SIZE:
+      width = (uint32_t)read_uint16_le(&buffer[0x12]);
+      height = (uint32_t)read_uint16_le(&buffer[0x14]);
+      colour_planes = read_uint16_le(&buffer[0x16]);
+      bits_per_pixel = read_uint16_le(&buffer[0x18]);
 
       break;
 
-    case BITMAPINFOHEADER:
-      width = (uint32_t)readUint16(buffer, 0x12, LITTLE_ENDIAN);
-      height = (uint32_t)readUint16(buffer, 0x14, LITTLE_ENDIAN);
-      colour_planes = readUint16(buffer, 0x16, LITTLE_ENDIAN);
-      bits_per_pixel = readUint16(buffer, 0x18, LITTLE_ENDIAN);
+    case BITMAPINFOHEADER_SIZE:
+      width = (uint32_t)read_uint16_le(&buffer[0x12]);
+      height = (uint32_t)read_uint16_le(&buffer[0x14]);
+      colour_planes = read_uint16_le(&buffer[0x16]);
+      bits_per_pixel = read_uint16_le(&buffer[0x18]);
 
       break;
 
-    case BITMAPV5HEADER:
+    case BITMAPV5HEADER_SIZE:
 
       // FIXME: these offsets are now wrong
       width = (int32_t)buffer[0x03] << 24 |
@@ -155,7 +146,6 @@ readHeader(byte *buffer)
   if (buffer[0x00] != 0x42) fail_with_message(NOT_A_VALID_BMP_FILE);
   if (buffer[0x01] != 0x4D) fail_with_message(NOT_A_VALID_BMP_FILE);
 
-  // That sounds like Jesus level programming -- Rob Bollons (10/08/2016)
   uint32_t file_size = (uint32_t)buffer[0x05] << 24 |
                        (uint32_t)buffer[0x04] << 16 |
                        (uint32_t)buffer[0x03] << 8  |
@@ -163,7 +153,8 @@ readHeader(byte *buffer)
 
   printf("the file size is %d bytes\n", file_size);
 
-  // Skip the reseved 4 bytes
+  /* Skip the reseved 4 bytes */
+
   uint32_t pixel_array_offset = (uint32_t)buffer[0x0A] << 24 |
                                 (uint32_t)buffer[0x0B] << 16 |
                                 (uint32_t)buffer[0x0C] << 8  |
@@ -172,20 +163,4 @@ readHeader(byte *buffer)
   printf("the pixel array offset is %08X\n", pixel_array_offset);
 
   return true;
-}
-
-uint16_t
-readUint16(byte *buffer, uint32_t offset, int endienness)
-{
-  return (uint16_t)buffer[offset+1] << 8 |
-         (uint16_t)buffer[offset];
-}
-
-uint32_t
-readUint32(byte *buffer, uint32_t offset, int endienness)
-{
-  return (uint32_t)buffer[offset+3] << 24 |
-         (uint32_t)buffer[offset+2] << 16 |
-         (uint32_t)buffer[offset+1] << 8  |
-         (uint32_t)buffer[offset];
 }
