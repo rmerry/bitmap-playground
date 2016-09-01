@@ -3,6 +3,8 @@
  *
  *
  */
+#ifndef BUFFER_H_
+# define BUFFER_H_
 
 #include <stdint.h>
 
@@ -14,5 +16,7 @@ struct buffer
 };
 
 /* function prototypes */
+unsigned char get_byte(struct buffer *buf);
 
-unsigned char get_byte(struct buffer *);
+#endif
+

@@ -1,12 +1,10 @@
 #include <stdint.h>
 #include "buffer.h"
 
-typedef unsigned char byte;
-
 uint16_t
 read_uint16_le(struct buffer *buf)
 {
-  byte bytes[2];
+  unsigned char bytes[2];
 
   bytes[0] = get_byte(buf);
   bytes[1] = get_byte(buf);
@@ -18,7 +16,7 @@ read_uint16_le(struct buffer *buf)
 uint32_t
 read_uint32_le(struct buffer *buf)
 {
-  byte bytes[4];
+  unsigned char bytes[4];
 
   bytes[0] = get_byte(buf);
   bytes[1] = get_byte(buf);
@@ -35,7 +33,7 @@ read_uint32_le(struct buffer *buf)
 int32_t
 read_int32_le(struct buffer *buf)
 {
-  byte bytes[4];
+  unsigned char bytes[4];
 
   bytes[0] = get_byte(buf);
   bytes[1] = get_byte(buf);
