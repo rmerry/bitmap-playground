@@ -23,7 +23,7 @@
  * Notes: These bitmaps are uncompressed and do not support
  *        bits per pixel values of 16 or 32
  */
-typedef struct BITMAPCOREHEADER
+struct bitmapcoreheader
 {
   uint16_t width;
   uint16_t height;
@@ -35,7 +35,7 @@ typedef struct BITMAPCOREHEADER
  *
  *
  */
-typedef struct BITMAPINFOHEADER
+struct bitmapinfoheader
 {
   int32_t width;
   int32_t height;
@@ -49,3 +49,14 @@ typedef struct BITMAPINFOHEADER
   int32_t important_colours; /* 0 to indicate all colours are important */
 } BITMAPINFOHEADER;
 
+/* The RGBA Quad data structure is used to store an
+ * RGAA 4-tuple as used in the colour palette data
+ * and the [FILL ME IN]
+ */
+struct rgbaquad
+{
+  unsigned char red;
+  unsigned char green;
+  unsigned char blue;
+  unsigned char alpha;
+} RGBAQUAD;
