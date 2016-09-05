@@ -154,23 +154,60 @@ load_bitmap(struct buffer *buf)
 
   /* read the bitmap array */
 
-  /* array size (bytes) = ((floor(bpp * width + 31) / 32) * 4) * height */
-
   /* This should never be the case, best attempts if it does */
   if (buf->index != px_array_offset)
     buf->index = px_array_offset;
+
+  /* array size (bytes) = ((floor(bpp * width + 31) / 32) * 4) * height */
+  int row_size = (bpp * width + 31) / 32 * 4;
 
   int i;
   struct rgbaquad pixel_array[width*height];
   switch (bpp) {
     case 1:
-      int byte_count = (width*height)/8;
-      for (i = 0; i < byte_count; ++i) {
-        palette[i].alpha = get_byte(buf);
+      printf("\n");
+      for (i = 0; i < height; ++i) {
+        printf("\n");
+        int l;
+        for (l = 0; l < row_size; ++l) {
+          unsigned char byte = get_byte(buf);
+
+          if ((byte >> 7 & 1)== 1)
+            printf("+");
+          else
+            printf(" ");
+          if ((byte >> 6 & 1)== 1)
+            printf("+");
+          else
+            printf(" ");
+          if ((byte >> 5 & 1)== 1)
+            printf("+");
+          else
+            printf(" ");
+          if ((byte >> 4 & 1)== 1)
+            printf("+");
+          else
+            printf(" ");
+          if ((byte >> 3 & 1)== 1)
+            printf("+");
+          else
+            printf(" ");
+          if ((byte >> 2 & 1)== 1)
+            printf("+");
+          else
+            printf(" ");
+          if (byte & 1 == 1)
+            printf("+");
+          else
+            printf(" ");
+
+        }
       }
 
       break;
   }
+  printf("the row size if %d bytes\n", row_size);
+          
 
   /* display information about the file */
   printf("the file size is %d bytes\n", file_size);

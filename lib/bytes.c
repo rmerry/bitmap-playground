@@ -1,12 +1,6 @@
 #include <stdint.h>
 #include "buffer.h"
 
-unsigned char *
-read_bit_array_le(struct buffer *)
-{
-
-}
-
 uint16_t
 read_uint16_le(struct buffer *buf)
 {
