@@ -118,16 +118,16 @@ load_bitmap(struct buffer *buf)
 
     case BITMAPINFOHEADER_SIZE:
     case BITMAPV5HEADER_SIZE:
-      width                    = read_int32_le(buf);
-      height                   = read_int32_le(buf);
-      colour_planes            = read_uint16_le(buf);
-      bpp           = read_uint16_le(buf);
-      compression_method       = read_uint32_le(buf);
-      bmp_data_size            = read_uint32_le(buf);
-      pix_per_meter_horizontal = read_int32_le(buf);
-      pix_per_meter_vertical   = read_int32_le(buf);
-      colours_in_palette       = read_int32_le(buf);
-      important_colours        = read_uint32_le(buf);
+      width                   = read_int32_le(buf);
+      height                  = read_int32_le(buf);
+      colour_planes           = read_uint16_le(buf);
+      bpp                     = read_uint16_le(buf);
+      compression_method      = read_uint32_le(buf);
+      bmp_data_size           = read_uint32_le(buf);
+      px_per_meter_horizontal = read_int32_le(buf);
+      px_per_meter_vertical   = read_int32_le(buf);
+      colours_in_palette      = read_int32_le(buf);
+      important_colours       = read_uint32_le(buf);
       break;
   }
 
@@ -135,36 +135,38 @@ load_bitmap(struct buffer *buf)
   * colour palette; bitmap files with a higher bit density can 
   * optionally contain a colour palette. */
 
+  int palette_size = 0;
+  struct rgbaquad *palette;
+
   if (buf->index < px_array_offset) {
-    int palette_size = (colours_in_palette == 0) ? 2^bpp : colours_in_palette;
+    palette_size = (colours_in_palette == 0) ? 2^bpp : colours_in_palette;
 
-    if (bpp == 1) {
-      struct rgbaquad palette[palette_size];
+    palette = malloc(sizeof(struct rgbaquad)*palette_size);
 
-      int i;
-      for (i = 0; i < palette_size; ++i) {
-        palette[i].red   = get_byte(buf);
-        palette[i].green = get_byte(buf);
-        palette[i].blue  = get_byte(buf);
-        palette[i].alpha = get_byte(buf);
-      }
+    int i;
+    for (i = 0; i < palette_size; ++i) {
+      palette[i].red   = get_byte(buf);
+      palette[i].green = get_byte(buf);
+      palette[i].blue  = get_byte(buf);
+      palette[i].alpha = get_byte(buf);
     }
+  }
 
   /* read the bitmap array */
+
+  /* array size (bytes) = ((floor(bpp * width + 31) / 32) * 4) * height */
 
   /* This should never be the case, best attempts if it does */
   if (buf->index != px_array_offset)
     buf->index = px_array_offset;
 
+  int i;
+  struct rgbaquad pixel_array[width*height];
   switch (bpp) {
     case 1:
-      struct rgbaquad pixel_array[width*height];
-      int i;
-      for (i = 0; i < palette_size; ++i) {
-        palette[i*width+l].red   = get_byte(buf);
-        palette[i*width+l].green = get_byte(buf);
-        palette[i*width+l].blue  = get_byte(buf);
-        palette[i*width+l].alpha = get_byte(buf);
+      int byte_count = (width*height)/8;
+      for (i = 0; i < byte_count; ++i) {
+        palette[i].alpha = get_byte(buf);
       }
 
       break;
@@ -172,16 +174,16 @@ load_bitmap(struct buffer *buf)
 
   /* display information about the file */
   printf("the file size is %d bytes\n", file_size);
-  printf("the pixel array offset is %d\n", pixel_array_offset);
+  printf("the pixel array offset is %d\n", px_array_offset);
   printf("the dib header size is %d bytes\n", dib_size);
   printf("the image width is %d pixels\n", width);
   printf("the image height is %d pixels\n", height);
   printf("there are %d colour planes\n", colour_planes);
-  printf("there are %d bits per pixel\n", bits_per_pixel);
+  printf("there are %d bits per pixel\n", bpp);
   printf("the compression method is %d\n", compression_method);
   printf("bitmap data size: %d\n", bmp_data_size);
-  printf("pixels per meter (horizontal): %d\n", pix_per_meter_horizontal);
-  printf("pixels per meter (vertical): %d\n", pix_per_meter_vertical);
+  printf("pixels per meter (horizontal): %d\n", px_per_meter_horizontal);
+  printf("pixels per meter (vertical): %d\n", px_per_meter_vertical);
   printf("colours in palette:  %d\n", colours_in_palette);
   printf("important colours:  %d\n", important_colours);
   printf("The index of the buffer [post palette]: %d\n", buf->index);
